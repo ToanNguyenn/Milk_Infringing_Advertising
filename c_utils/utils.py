@@ -1,14 +1,12 @@
 import torch
-import torch.nn.functional as F
-import os
-from PIL import Image
-import pandas as pd
-import numpy as np
-from tqdm import tqdm
-import matplotlib.pyplot as plt
 import torchvision
+import numpy as np
 import cv2.cv2 as cv2
 import c_utils.config as cfg
+import matplotlib.pyplot as plt
+
+from PIL import Image
+from model.resnet import ResNet101
 
 
 def plot_acc(train_accu, eval_acc):
@@ -63,24 +61,64 @@ def load_checkpoint(checkpoint, model, optimizer):
 
 
 def resnet_init(model_type, weight_path):
-    net = model_type(img_channel=3, num_classes=cfg.num_classes).to(cfg.device)
+    # net = model_type(img_channel=3, num_classes=cfg.num_classes).to(cfg.device)
+    net = model_type(num_classes=cfg.num_classes).to(cfg.device)
     net.load_state_dict(torch.load(weight_path, map_location=torch.device(cfg.device)))
     return net
 
 
-def make_prediction(model, image, transform, device):
-    # image = Image.open(image_path)
-    # net = model.to(cfg.device)
-    im_pil = Image.fromarray(image)
-    net = model
-    img = transform(im_pil).unsqueeze(0).to(device)
-    net.eval()
-    outputs = net(img)
-    _, predicted = torch.max(outputs, 1)
-    image = np.array(image)
-    # print(f'{cfg.class_name[cfg.classes[predicted]]:.100s}')
-    label = cfg.class_name[cfg.classes[predicted]]
-    return label, image
+def yolo_run(image, model):
+    list_box = []
+    list_image = []
+    output = []
+    results = model(image, size=640)  # includes NMS
+    label_files = results.pred[0].tolist()
+    for num, file in enumerate(label_files):
+        boxes = file[:4]
+
+        ymin = round((float(boxes[0])))
+        xmin = round((float(boxes[1])))
+        ymax = round((float(boxes[2])))
+        xmax = round((float(boxes[3])))
+        iloc = [xmin, ymin, xmax, ymax]
+
+        cropped_image = image[xmin:xmax, ymin:ymax].copy()
+        list_box.append(iloc)
+        list_image.append(cropped_image)
+        output = [list_box, list_image]
+
+    return output
+
+
+def make_prediction(image_path, transform, device, yolo_model, resnet_model):
+    image = cv2.imread(image_path)
+    model = resnet_model
+    yolo_output = yolo_run(image, yolo_model)
+    list_box, list_image = yolo_output
+
+    for num, img in enumerate(list_image):
+
+        im_pil = Image.fromarray(image)
+        img = transform(im_pil).unsqueeze(0).to(device)
+
+        model.eval()
+        outputs = model(img)
+        _, predicted = torch.max(outputs, 1)
+
+        image = np.array(image)
+        label = cfg.class_name[cfg.classes[predicted]]
+
+        xmin, ymin, xmax, ymax = list_box[num]
+        image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
+        cv2.putText(image, label, (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+    name = image_path + "_" + "pred" + ".jpg"
+    cv2.imwrite(name, image)
+    print(name)
+
+def init_model(yolo_weight, resnet_weight):
+    yolo_model = torch.hub.load('ultralytics/yolov5', 'custom', path=yolo_weight, force_reload=True)
+    resnet_model = resnet_init(ResNet101, weight_path=resnet_weight)
+    return yolo_model, resnet_model
 
 
 def pred_test_loader(test_loader, model, path):
