@@ -1,3 +1,4 @@
+import os
 import torch
 import torchvision
 import numpy as np
@@ -60,9 +61,16 @@ def load_checkpoint(checkpoint, model, optimizer):
     optimizer.load_state_dict(checkpoint['optimizer'])
 
 
-def resnet_init(model_type, weight_path):
+def classify_init(weight_path, repo, model):
     # net = model_type(img_channel=3, num_classes=cfg.num_classes).to(cfg.device)
-    net = model_type(num_classes=cfg.num_classes).to(cfg.device)
+    net = torch.hub.load(repo, model)
+    net.fc = torch.nn.Sequential(torch.nn.Linear(2048, 1024),
+                                 torch.nn.BatchNorm1d(1024),
+                                 torch.nn.ReLU(inplace=True),
+                                 torch.nn.Linear(1024, 512),
+                                 torch.nn.BatchNorm1d(512),
+                                 torch.nn.ReLU(inplace=True),
+                                 torch.nn.Linear(512, cfg.num_classes))
     net.load_state_dict(torch.load(weight_path, map_location=torch.device(cfg.device)))
     return net
 
@@ -90,35 +98,41 @@ def yolo_run(image, model):
     return output
 
 
-def make_prediction(image_path, transform, device, yolo_model, resnet_model):
+def make_prediction(image_path, transform, device, yolo_model, classify_model, save_path=None):
     image = cv2.imread(image_path)
-    model = resnet_model
+    model = classify_model
     yolo_output = yolo_run(image, yolo_model)
-    list_box, list_image = yolo_output
+    if len(yolo_output) != 0:
+        list_box, list_image = yolo_output
 
-    for num, img in enumerate(list_image):
+        for num, img in enumerate(list_image):
 
-        im_pil = Image.fromarray(image)
-        img = transform(im_pil).unsqueeze(0).to(device)
+            im_pil = Image.fromarray(image)
+            img = transform(im_pil).unsqueeze(0).to(device)
 
-        model.eval()
-        outputs = model(img)
-        _, predicted = torch.max(outputs, 1)
+            model.eval()
+            outputs = model(img)
+            _, predicted = torch.max(outputs, 1)
 
-        image = np.array(image)
-        label = cfg.class_name[cfg.classes[predicted]]
+            image = np.array(image)
+            label = cfg.class_name[cfg.classes[predicted]]
 
-        xmin, ymin, xmax, ymax = list_box[num]
-        image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
-        cv2.putText(image, label, (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
-    name = image_path + "_" + "pred" + ".jpg"
-    cv2.imwrite(name, image)
+            xmin, ymin, xmax, ymax = list_box[num]
+            image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
+            cv2.putText(image, label, (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+    if save_path is None:
+        name = image_path + "_" + "pred" + ".jpg"
+        cv2.imwrite(name, image)
+    else:
+        name = save_path + os.path.basename(image_path)
+        cv2.imwrite(name, image)
     print(name)
 
-def init_model(yolo_weight, resnet_weight):
+
+def init_model(yolo_weight, classify_weight, repo='facebookresearch/semi-supervised-ImageNet1K-models', model='resnext50_32x4d_ssl'):
     yolo_model = torch.hub.load('ultralytics/yolov5', 'custom', path=yolo_weight, force_reload=True)
-    resnet_model = resnet_init(ResNet101, weight_path=resnet_weight)
-    return yolo_model, resnet_model
+    classify_model = classify_init(weight_path=classify_weight, repo=repo, model=model)
+    return yolo_model, classify_model
 
 
 def pred_test_loader(test_loader, model, path):
