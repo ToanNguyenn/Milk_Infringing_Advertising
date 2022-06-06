@@ -46,7 +46,7 @@ def crop_image(image_path, transform, device, yolo_model, save_path=None):
             xmin, ymin, xmax, ymax = list_box[num]
             image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
     if save_path is None:
-        cv2.imshow("Crop image", image)
+        return image
     else:
         name = save_path + os.path.basename(image_path)
         cv2.imwrite(name, image)
