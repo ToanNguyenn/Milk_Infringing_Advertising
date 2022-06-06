@@ -1,5 +1,5 @@
-from utils.utils import *
-from utils import config as cfg
+from c_utils.utils import *
+from c_utils import config as cfg
 
 yolo_weight = r'E:\PycharmProjects\Milk_project\yolov5\best.pt'
 image_path = r'E:\PycharmProjects\Milk_Infringing_Advertising\data_test\Nature One Dairy Premium Goat Milk Formula Toddler000007.png'
