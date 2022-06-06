@@ -3,7 +3,7 @@ import torch
 import torchvision
 import numpy as np
 import cv2.cv2 as cv2
-
+from c_utils import config as cfg
 from PIL import Image
 
 
@@ -35,7 +35,7 @@ def yolo_run(image, model):
     return output
 
 
-def crop_image(image_path, transform, device, yolo_model, save_path=None):
+def crop_image(image_path, yolo_model, save_path=None):
     image = cv2.imread(image_path)
     yolo_output = yolo_run(image, yolo_model)
     if len(yolo_output) != 0:
