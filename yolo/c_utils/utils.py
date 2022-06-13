@@ -2,7 +2,7 @@ import os
 import torch
 import torchvision
 import numpy as np
-import cv2.cv2 as cv2
+import cv2
 from c_utils import config as cfg
 from PIL import Image
 
