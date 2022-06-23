@@ -19,13 +19,17 @@ def yolo_run(image, model, type="object_detect"):
     list_label = []
     output = []
     if type == 'rtd':
-        model.conf = 0.5
+        model.conf = 0.2
+        model.classes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     else:
         model.conf = 0.35
         model.classes = [0, 1, 2, 3, 5, 6]
-    results = model(image, size=640)  # includes NMS
+    model.cuda()
+    results = model(image)  # includes NMS
     label_files = results.pred[0].tolist()
     names = results.names
+    if type == 'rtd':
+        print(results.pandas().xyxy[0])
     for num, file in enumerate(label_files):
         boxes = file[:4]
         label = file[-1]
@@ -43,8 +47,7 @@ def yolo_run(image, model, type="object_detect"):
     return output
 
 
-def crop_rtd(image, image_path, yolo_rtd_model,save_path=None):
-    # image = cv2.imread(image_path)
+def crop_rtd(image, image_path, yolo_rtd_model,save_path=None, count=0):
     yolo_output = yolo_run(image, yolo_rtd_model, type='rtd')
     if len(yolo_output) != 0:
         list_box, list_image, list_label = yolo_output
@@ -52,27 +55,29 @@ def crop_rtd(image, image_path, yolo_rtd_model,save_path=None):
             xmin, ymin, xmax, ymax = list_box[num]
             image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
             label = list_label[num]
-            print(label)
             cv2.putText(image, str(label), (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
     folder = save_path + '\\rtd\\'
     if not os.path.isdir(folder):
         os.makedirs(folder)
-    name = folder + os.path.basename(image_path)
+    name = folder + str(count) + "_" + os.path.basename(image_path)
     cv2.imwrite(name, image)
-    print(name)
+    # print(name)
 
 
 def crop_image(image_path, yolo_obj_model, yolo_rtd_model, save_path=None):
     image = cv2.imread(image_path)
     yolo_output = yolo_run(image, yolo_obj_model)
+    count = 0
     if len(yolo_output) != 0:
         list_box, list_image, list_label = yolo_output
+        print(list_label)
         for num, img in enumerate(list_image):
             xmin, ymin, xmax, ymax = list_box[num]
             image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
             label = list_label[num]
             if label == "sua_binh" or label == "sua_hop":
-                crop_rtd(img, image_path=image_path, yolo_rtd_model=yolo_rtd_model, save_path=save_path)
+                crop_rtd(img, image_path=image_path, yolo_rtd_model=yolo_rtd_model, save_path=save_path, count=count)
+                count += 1
             cv2.putText(image, str(label), (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
     if save_path is None:
         name = image_path + "_" + "pred" + ".jpg"
@@ -82,3 +87,4 @@ def crop_image(image_path, yolo_obj_model, yolo_rtd_model, save_path=None):
         name = save_path + '\\' + os.path.basename(image_path)
         cv2.imwrite(name, image)
         print(name)
+    print("-------------------")
