@@ -82,6 +82,6 @@ def crop_image(image_path, yolo_obj_model, yolo_rtd_model, save_path=None, obj_c
     else:
         name = os.path.join(save_path, os.path.basename(image_path))
 #         cv2.imshow('image', image)
-        cv2.imwrite(image)
+        cv2.imwrite(name, image)
         print(name)
     # print("-------------------")
