@@ -53,7 +53,7 @@ def crop_rtd(image, image_path, yolo_rtd_model,save_path=None, count=0, rtd_conf
             image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
             label = list_label[num]
             cv2.putText(image, str(label), (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
-    folder = save_path + '\\rtd\\'
+    folder = save_path + '/rtd/'
     if not os.path.isdir(folder):
         os.makedirs(folder)
     name = folder + str(count) + "_" + os.path.basename(image_path)
@@ -79,7 +79,7 @@ def crop_image(image_path, yolo_obj_model, yolo_rtd_model, save_path=None, obj_c
         cv2.imwrite(name, image)
         return image
     else:
-        name = save_path + '\\' + os.path.basename(image_path)
+        name = save_path + '/' + os.path.basename(image_path)
         cv2.imwrite(name, image)
     #     print(name)
     # print("-------------------")
