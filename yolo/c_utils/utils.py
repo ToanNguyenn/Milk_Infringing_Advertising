@@ -4,6 +4,7 @@ import torchvision
 import numpy as np
 import cv2
 from c_utils import config as cfg
+from google.colab.patches import cv2_imshow
 from PIL import Image
 
 
@@ -76,11 +77,11 @@ def crop_image(image_path, yolo_obj_model, yolo_rtd_model, save_path=None, obj_c
             cv2.putText(image, str(label), (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
     if save_path is None:
         name = image_path + "_" + "pred" + ".jpg"
-        cv2.imwrite(name, image)
+        cv2.imwrite(image)
         return image
     else:
         name = os.path.join(save_path, os.path.basename(image_path))
         cv2.imshow('image', image)
-        cv2.imwrite(name, image)
+        cv2.imwrite(image)
         print(name)
     # print("-------------------")
