@@ -1,7 +1,6 @@
 import os
 import torch
 import cv2
-from c_utils import config as cfg
 
 
 def init_model(object_detect_weight, rtd_weight):
@@ -10,11 +9,13 @@ def init_model(object_detect_weight, rtd_weight):
     return yolo_obj_model, yolo_rtd_model
 
 
-def yolo_run(image, model, model_type="object_detect", rtd_conf=0.2, obj_conf=0.3, device=cfg.device):
+def yolo_run(image, model, model_type="object_detect", rtd_conf=0.2, obj_conf=0.3):
     list_box = []
     list_image = []
     list_label = []
     output = []
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
     if model_type == 'rtd':
         model.conf = rtd_conf
         model.classes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
