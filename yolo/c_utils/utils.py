@@ -1,10 +1,7 @@
 import os
 import torch
-import torchvision
-import numpy as np
 import cv2
 from c_utils import config as cfg
-from PIL import Image
 
 
 def init_model(object_detect_weight, rtd_weight):
@@ -13,12 +10,12 @@ def init_model(object_detect_weight, rtd_weight):
     return yolo_obj_model, yolo_rtd_model
 
 
-def yolo_run(image, model, type="object_detect", rtd_conf=0.2, obj_conf=0.3):
+def yolo_run(image, model, model_type="object_detect", rtd_conf=0.2, obj_conf=0.3):
     list_box = []
     list_image = []
     list_label = []
     output = []
-    if type == 'rtd':
+    if model_type == 'rtd':
         model.conf = rtd_conf
         model.classes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     else:
@@ -44,42 +41,55 @@ def yolo_run(image, model, type="object_detect", rtd_conf=0.2, obj_conf=0.3):
     return output
 
 
-def crop_rtd(image, image_path, yolo_rtd_model,save_path=None, count=0, rtd_conf=0.2):
-    yolo_output = yolo_run(image, yolo_rtd_model, type='rtd', rtd_conf=rtd_conf)
+def draw_box(yolo_output, image):
+    draw_image = image
+    list_label = []
+    list_image = []
     if len(yolo_output) != 0:
         list_box, list_image, list_label = yolo_output
         for num, img in enumerate(list_image):
             xmin, ymin, xmax, ymax = list_box[num]
-            image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
+            draw_image = cv2.rectangle(draw_image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
             label = list_label[num]
-            cv2.putText(image, str(label), (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
-    folder = save_path + '\\rtd\\'
-    if not os.path.isdir(folder):
-        os.makedirs(folder)
-    name = folder + str(count) + "_" + os.path.basename(image_path)
-    cv2.imwrite(name, image)
+            cv2.putText(draw_image, str(label), (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+    return draw_image, list_image, list_label
 
 
-def crop_image(image_path, yolo_obj_model, yolo_rtd_model, save_path=None, obj_conf=0.3, rtd_conf=0.2):
+def save_obj(save_path, image_path, image):
+    if save_path is None:
+        name = image_path + "_pred.jpg"
+        cv2.imwrite(name, image)
+        print(name)
+    else:
+        name = os.path.join(save_path, os.path.basename(image_path))
+        cv2.imwrite(name, image)
+        print(name)
+    print("-------------------")
+
+
+def object_detect(image_path, yolo_obj_model, save_path=None, obj_conf=0.3):
     image = cv2.imread(image_path)
     yolo_output = yolo_run(image, yolo_obj_model, obj_conf=obj_conf)
-    count = 0
     if len(yolo_output) != 0:
-        list_box, list_image, list_label = yolo_output
-        for num, img in enumerate(list_image):
-            xmin, ymin, xmax, ymax = list_box[num]
-            image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
-            label = list_label[num]
-            if label == "sua_binh" or label == "sua_hop":
-                crop_rtd(img, image_path=image_path, yolo_rtd_model=yolo_rtd_model, save_path=save_path, count=count, rtd_conf=rtd_conf)
-                count += 1
-            cv2.putText(image, str(label), (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
-    if save_path is None:
-        name = image_path + "_" + "pred" + ".jpg"
-        cv2.imwrite(name, image)
-        return image
+        img, list_image, list_label = draw_box(yolo_output, image)
+        save_obj(save_path, image_path, img)
+        return image, list_image, list_label
     else:
-        name = save_path + '\\' + os.path.basename(image_path)
+        list_label = []
+        list_image = []
+        save_obj(save_path, image_path, image)
+        return image, list_image, list_label
+
+
+def rtd_detect(image, image_path, yolo_rtd_model, save_path=None, count=0, rtd_conf=0.2):
+    folder = os.path.join(save_path, 'rtd')
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+    name = os.path.join(folder, str(count) + "_" + os.path.basename(image_path))
+
+    yolo_output = yolo_run(image, yolo_rtd_model, model_type='rtd', rtd_conf=rtd_conf)
+    if len(yolo_output) != 0:
+        img, list_image, list_label = draw_box(yolo_output, image)
+        cv2.imwrite(name, img)
+    else:
         cv2.imwrite(name, image)
-    #     print(name)
-    # print("-------------------")
