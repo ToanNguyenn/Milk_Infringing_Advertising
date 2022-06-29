@@ -72,8 +72,12 @@ def draw_box(list_box, list_image, list_label, save_path=None, image_path=None, 
         if save_result:
             save_obj(save_path, image_path, image)
         if visualize:
-            cv2.imshow("Image", image)
-            cv2.waitKey(0)
+            try:
+                cv2.imshow("Image", image)
+                cv2.waitKey(0)
+            except:
+                from google.colab.patches import cv2_imshow
+                cv2_imshow(image)
     return image, list_image, list_label
 
 
