@@ -43,8 +43,7 @@ def yolo_run(image, model, model_type="object_detect", rtd_conf=0.2, obj_conf=0.
     return output
 
 
-def draw_box(list_box, list_image, list_label, save_path=None, image_path=None, input_image=None,
-             count=None, save_result=False, visualize=False, is_rtd=False):
+def draw_box(list_box, list_image, list_label, image_path=None, input_image=None, is_rtd=False):
     if is_rtd:
         image = input_image
     else:
@@ -54,31 +53,45 @@ def draw_box(list_box, list_image, list_label, save_path=None, image_path=None, 
         image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
         label = list_label[num]
         cv2.putText(image, str(label), (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
-    if is_rtd:
-        folder = os.path.join(save_path, 'rtd')
-        if not os.path.isdir(folder):
-            os.makedirs(folder)
-        name = os.path.join(folder, str(count) + "_" + os.path.basename(image_path))
-        if save_result:
-            cv2.imwrite(name, image)
-        if visualize:
-            try:
-                cv2.imshow("Image", image)
-                cv2.waitKey(0)
-            except:
-                from google.colab.patches import cv2_imshow
-                cv2_imshow(image)
-    else:
-        if save_result:
-            save_obj(save_path, image_path, image)
-        if visualize:
-            try:
-                cv2.imshow("Image", image)
-                cv2.waitKey(0)
-            except:
-                from google.colab.patches import cv2_imshow
-                cv2_imshow(image)
-    return image, list_image, list_label
+    return image
+
+
+# def draw_box(list_box, list_image, list_label, save_path=None, image_path=None, input_image=None,
+#              count=None, save_result=False, visualize=False, is_rtd=False):
+#     if is_rtd:
+#         image = input_image
+#     else:
+#         image = cv2.imread(image_path)
+#     for num, img in enumerate(list_image):
+#         xmin, ymin, xmax, ymax = list_box[num]
+#         image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
+#         label = list_label[num]
+#         cv2.putText(image, str(label), (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+#     if is_rtd:
+#         folder = os.path.join(save_path, 'rtd')
+#         if not os.path.isdir(folder):
+#             os.makedirs(folder)
+#         name = os.path.join(folder, str(count) + "_" + os.path.basename(image_path))
+#         if save_result:
+#             cv2.imwrite(name, image)
+#         if visualize:
+#             try:
+#                 cv2.imshow("Image", image)
+#                 cv2.waitKey(0)
+#             except:
+#                 from google.colab.patches import cv2_imshow
+#                 cv2_imshow(image)
+#     else:
+#         if save_result:
+#             save_obj(save_path, image_path, image)
+#         if visualize:
+#             try:
+#                 cv2.imshow("Image", image)
+#                 cv2.waitKey(0)
+#             except:
+#                 from google.colab.patches import cv2_imshow
+#                 cv2_imshow(image)
+#     return image, list_image, list_label
 
 
 def save_obj(save_path, image_path, image):
