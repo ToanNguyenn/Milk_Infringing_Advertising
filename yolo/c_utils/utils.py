@@ -106,8 +106,10 @@ def save_obj(save_path, image_path, image):
     print("-------------------")
 
 
-def object_detect(image_path, yolo_obj_model, obj_conf=0.33):
-    image = cv2.imread(image_path)
+def object_detect(input, yolo_obj_model, obj_conf=0.33):
+    if type(input) == str:
+        image = cv2.imread(input)
+    image = input
     list_box = []
     list_image = []
     list_label = []
