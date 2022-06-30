@@ -44,7 +44,7 @@ def yolo_run(image, model, model_type="object_detect", rtd_conf=0.2, obj_conf=0.
 
 
 def draw_box(list_box, list_image, list_label, image_path=None, input_image=None, is_rtd=False):
-    if is_rtd:
+    if input_image is not None:
         image = input_image
     else:
         image = cv2.imread(image_path)
