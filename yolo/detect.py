@@ -19,11 +19,15 @@ if __name__ == '__main__':
     for image in os.listdir(folder):
         image_path = os.path.join(folder, image)
         # create list (default obj_conf=0.33 and customizable)
-        list_box, list_image, list_label = object_detect(image_path=image_path, yolo_obj_model=yolo_model)
+        image = cv2.imread(image_path)
+        list_box, list_image, list_label = object_detect(input=image, yolo_obj_model=yolo_model)
 
         # draw box and save image (optional)
-        draw_box(list_box, list_image, list_label, save_path=save_path, image_path=image_path,
-                 save_result=True, visualize=True)
+        # draw_box(list_box, list_image, list_label, save_path=save_path, image_path=image_path,
+        #          save_result=True, visualize=True)
+        end_image = draw_box(list_box, list_image, list_label, image_path=image_path)
+        cv2.imshow("Image", end_image)
+        cv2.waitKey(0)
         count = 0
         for num, label in enumerate(list_label):
             if label == "sua_binh" or label == "sua_hop":
@@ -31,8 +35,8 @@ if __name__ == '__main__':
                 rtd_list_box, rtd_list_image, rtd_list_label = rtd_detect(list_image[num], yolo_rtd_model=rtd_model)
 
                 # draw box rtd and save image (optional) - set is_rtd=True & input object image
-                draw_box(rtd_list_box, rtd_list_image, rtd_list_label, save_path=save_path, image_path=image_path,
-                         input_image=list_image[num], count=count, save_result=True, visualize=True, is_rtd=True)
+                rtd_image = draw_box(rtd_list_box, rtd_list_image, rtd_list_label, image_path=image_path,
+                         input_image=list_image[num], is_rtd=True)
                 count += 1
 
 
