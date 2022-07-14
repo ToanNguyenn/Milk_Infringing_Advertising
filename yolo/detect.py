@@ -27,11 +27,10 @@ if __name__ == '__main__':
         # draw_box(list_box, list_image, list_label, save_path=save_path, image_path=image_path,
         #          save_result=True, visualize=False)
 
-        end_image = draw_box(list_box, list_image, list_label, input_image=image)
-        cv2.imshow("Image", end_image)
-        cv2.waitKey(0)
+        # end_image = draw_box(list_box, list_image, list_label, input_image=image)
+        # cv2.imshow("Image", end_image)
+        # cv2.waitKey(0)
 
-        count = 0
         for num, label in enumerate(list_label):
             # create list (default rtd_conf=0.6 and customizable)
             rtd_list_box, rtd_list_image, rtd_list_label = rtd_detect(list_image[num], object_label=label, yolo_rtd_model=rtd_model, rtd_conf=0.35)
@@ -39,23 +38,6 @@ if __name__ == '__main__':
             # draw box rtd and save image (optional) - set is_rtd=True & input object image
             rtd_image = draw_box(rtd_list_box, rtd_list_image, rtd_list_label, image_path=image_path,
                                  input_image=list_image[num], is_rtd=True)
-
+            # list_label[num] = f'{label}_{num}'
             # draw_box(rtd_list_box, rtd_list_image, rtd_list_label, save_path=save_path, image_path=image_path,
             #          input_image=list_image[num], count=count, save_result=True, visualize=False, is_rtd=True)
-            count += 1
-        #          save_result=True, visualize=True)
-        end_image = draw_box(list_box, list_image, list_label, image_path=image_path)
-        cv2.imshow("Image", end_image)
-        cv2.waitKey(0)
-        count = 0
-        for num, label in enumerate(list_label):
-            if label == "sua_binh" or label == "sua_hop":
-                # create list (default rtd_conf=0.6 and customizable)
-                rtd_list_box, rtd_list_image, rtd_list_label = rtd_detect(list_image[num], yolo_rtd_model=rtd_model)
-
-                # draw box rtd and save image (optional) - set is_rtd=True & input object image
-                rtd_image = draw_box(rtd_list_box, rtd_list_image, rtd_list_label, image_path=image_path,
-                         input_image=list_image[num], is_rtd=True)
-                count += 1
-
-

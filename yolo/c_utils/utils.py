@@ -149,26 +149,25 @@ def rtd_detect(image, object_label, yolo_rtd_model, rtd_conf=0.6):
         list_box, list_image, list_label = yolo_output
         for i in range(len(list_label)):
             if list_label[i] == "Peadiasure":
-                list_label[i] = f"{i}_Chua_xac_dinh"
+                list_label[i] = f"5.1"
             if list_label[i] == "Momcare":
-                list_label[i] = f"{i}_CMF_PW"
+                list_label[i] = f"CMF_PW"
             if list_label[i] == "Aptamil":
-                list_label[i] = f"{i}_WHA58.32_9.1+9.2"
+                list_label[i] = f"WHA58.32_9.1+9.2"
             if list_label[i] == "Enfamil":
-                list_label[i] = f"{i}_WHA58.32_9.1+9.2"
+                list_label[i] = f"WHA58.32_9.1+9.2"
             if list_label[i] == "Similac360":
-                list_label[i] = f"{i}_WHA58.32_9.1+9.2"
+                list_label[i] = f"WHA58.32_9.1+9.2"
             if list_label[i] == "SimilacPro":
-                list_label[i] = f"{i}_WHA58.32_9.1+9.2"
+                list_label[i] = f"WHA58.32_9.1+9.2"
             if list_label[i] == "Similac":
-                list_label[i] = f"{i}_WHA58.32_9.1+9.2"
+                list_label[i] = f"WHA58.32_9.1+9.2"
             if list_label[i] == "SimilacOrganic":
-                list_label[i] = f"{i}_WHA58.32+WHA61.20_WHA58.32; 9.1+9.2"
+                list_label[i] = f"WHA58.32+WHA61.20_WHA58.32; 9.1+9.2"
             if list_label[i] == "Gerber good start":
-                list_label[i] = f"{i}_WHA58.32"
-            if list_label[i] == "baby_gerber":
+                list_label[i] = f"WHA58.32"
+            if list_label[i] == "baby_gerber" or list_label[i] == "Gerber":
                 if "Gerber" in list_label:
-                    list_label[i] = f"{i}_WHO_Rec_4"
-                    # list_label.remove("Gerber")
-    print(f"{object_label}", list_label)
+                    list_label[i] = f"WHO_Rec_4"
+
     return list_box, list_image, list_label
