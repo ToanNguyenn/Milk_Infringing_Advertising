@@ -18,10 +18,10 @@ def yolo_run(image, model, model_type="object_detect", rtd_conf=0.2, obj_conf=0.
 
     if model_type == 'rtd':
         model.conf = rtd_conf
-        model.classes = [0, 1, 8, 9, 11, 12, 13, 14, 15, 2]
+        model.classes = [0, 1, 8, 9, 11, 12, 13, 14, 15, 2, 10]
     elif model_type == 'brand':
         model.conf = rtd_conf
-        model.classes = [2, 3, 4, 5, 6, 7]
+        model.classes = [2, 3, 4, 5, 6, 7, 10]
     elif model_type == 'object_detect':
         model.conf = obj_conf
         model.classes = [0, 1, 2, 3, 5, 6]
