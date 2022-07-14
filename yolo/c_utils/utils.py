@@ -9,7 +9,7 @@ def init_model(object_detect_weight, rtd_weight):
     return yolo_obj_model, yolo_rtd_model
 
 
-def yolo_run(image, model, model_type="object_detect", rtd_conf=0.2, obj_conf=0.3):
+def yolo_run(image, model, model_type="object_detect", rtd_conf=0.2, obj_conf=0.35):
     list_box = []
     list_image = []
     list_label = []
@@ -18,8 +18,11 @@ def yolo_run(image, model, model_type="object_detect", rtd_conf=0.2, obj_conf=0.
 
     if model_type == 'rtd':
         model.conf = rtd_conf
-        model.classes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    else:
+        model.classes = [0, 1, 8, 9, 11, 12, 13, 14, 15, 2]
+    elif model_type == 'brand':
+        model.conf = rtd_conf
+        model.classes = [2, 3, 4, 5, 6, 7]
+    elif model_type == 'object_detect':
         model.conf = obj_conf
         model.classes = [0, 1, 2, 3, 5, 6]
     model.to(device)
@@ -44,7 +47,7 @@ def yolo_run(image, model, model_type="object_detect", rtd_conf=0.2, obj_conf=0.
 
 
 def draw_box(list_box, list_image, list_label, image_path=None, input_image=None, is_rtd=False):
-    if is_rtd:
+    if input_image is not None:
         image = input_image
     else:
         image = cv2.imread(image_path)
@@ -67,6 +70,20 @@ def draw_box(list_box, list_image, list_label, image_path=None, input_image=None
 #         image = cv2.rectangle(image, (ymin, xmin), (ymax, xmax), (36, 255, 12), 1)
 #         label = list_label[num]
 #         cv2.putText(image, str(label), (ymin, xmin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+#     if is_rtd:
+#         folder = os.path.join(save_path, 'rtd')
+#         if not os.path.isdir(folder):
+#             os.makedirs(folder)
+#         name = os.path.join(folder, str(count) + "_" + os.path.basename(image_path))
+#         if save_result:
+#             cv2.imwrite(name, image)
+#         if visualize:
+#             try:
+#                 cv2.imshow("Image", image)
+#                 cv2.waitKey(0)
+#             except:
+#                 from google.colab.patches import cv2_imshow
+#                 cv2_imshow(image)
 #     if is_rtd:
 #         folder = os.path.join(save_path, 'rtd')
 #         if not os.path.isdir(folder):
@@ -119,12 +136,39 @@ def object_detect(input, yolo_obj_model, obj_conf=0.33):
     return list_box, list_image, list_label
 
 
-def rtd_detect(image, yolo_rtd_model, rtd_conf=0.6):
+def rtd_detect(image, object_label, yolo_rtd_model, rtd_conf=0.6):
     list_box = []
     list_label = []
     list_image = []
-
-    yolo_output = yolo_run(image, yolo_rtd_model, model_type='rtd', rtd_conf=rtd_conf)
+    yolo_output = []
+    if object_label == "sua_binh" or object_label == "sua_hop":
+        yolo_output = yolo_run(image, yolo_rtd_model, model_type='rtd', rtd_conf=rtd_conf)
+    elif object_label == "sua_lon" or object_label == "sua_tui":
+        yolo_output = yolo_run(image, yolo_rtd_model, model_type='brand', rtd_conf=rtd_conf)
     if len(yolo_output) != 0:
         list_box, list_image, list_label = yolo_output
+        for i in range(len(list_label)):
+            if list_label[i] == "Peadiasure":
+                list_label[i] = f"{i}_Chua_xac_dinh"
+            if list_label[i] == "Momcare":
+                list_label[i] = f"{i}_CMF_PW"
+            if list_label[i] == "Aptamil":
+                list_label[i] = f"{i}_WHA58.32_9.1+9.2"
+            if list_label[i] == "Enfamil":
+                list_label[i] = f"{i}_WHA58.32_9.1+9.2"
+            if list_label[i] == "Similac360":
+                list_label[i] = f"{i}_WHA58.32_9.1+9.2"
+            if list_label[i] == "SimilacPro":
+                list_label[i] = f"{i}_WHA58.32_9.1+9.2"
+            if list_label[i] == "Similac":
+                list_label[i] = f"{i}_WHA58.32_9.1+9.2"
+            if list_label[i] == "SimilacOrganic":
+                list_label[i] = f"{i}_WHA58.32+WHA61.20_WHA58.32; 9.1+9.2"
+            if list_label[i] == "Gerber good start":
+                list_label[i] = f"{i}_WHA58.32"
+            if list_label[i] == "baby_gerber":
+                if "Gerber" in list_label:
+                    list_label[i] = f"{i}_WHO_Rec_4"
+                    # list_label.remove("Gerber")
+    print(f"{object_label}", list_label)
     return list_box, list_image, list_label
